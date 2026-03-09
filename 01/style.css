@@ -1,0 +1,14 @@
+/* style.css */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;               /* 中身を整列させるモード */
+    justify-content: center;    /* 左端から */
+    align-items: center;        /* 上下中央 */
+    min-height: 100vh;          /* 画面の高さ100%分 */
+    background-color: #000000;     /* 背景を暗くするとキャンバスが目立つ */
+    padding-left: 0px;          /* 左端から10px */
+  }

@@ -1,52 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Dreamy Clouds - p5.js</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1a2a6c;
-            /* Soft dark blue base */
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        .ui-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            color: white;
-            pointer-events: none;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            opacity: 0.8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p5.js Sketch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="ui-container">
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <script src="sketch.js"></script>
+  <!-- 1. ライブラリ: p5.js, p5.svg.js, tweakpane (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://unpkg.com/p5.js-svg@1.5.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
+  
+  <!-- 2. Elements (親→子): BaseElement.js -> TextElement.js -> ImageElement.js -> VectorElement.js -->
+  <script src="lib/elements/BaseElement.js"></script>
+  <script src="lib/elements/TextElement.js"></script>
+  <script src="lib/elements/ImageElement.js"></script>
+  <script src="lib/elements/VectorElement.js"></script>
+  
+  <!-- 3. Core: TransformManager.js -> DesignSystem.js -->
+  <script src="lib/core/TransformManager.js"></script>
+  <script src="lib/core/DesignSystem.js"></script>
+  
+  <!-- 4. メイン: sketch.js -->
+  <script src="sketch.js"></script>
 </body>
-
 </html>
