@@ -4,10 +4,10 @@ let fixData = null; // fix.jsonの内容を格納
 let particleStep = 1; // パーティクルステップ（Tweakpaneで調整可能）
 let particlePane; // パーティクル用のTweakpane
 let particleColors = {
-  color1: '#ffffff', // 色1（白）
-  color2: '#c1c3b0', // 色2（緑）
-  color3: '#0000ff', // 色3（青）
-  color4: '#31310f'  // 色4（黄）
+  color1: '#ffffff', // 色1
+  color2: '#c1c3b0', // 色2
+  color3: '#0000ff', // 色3
+  color4: '#31310f'  // 色4
 };
 
 // titleタグに適用されるストロークの色（ここで変更できます）
