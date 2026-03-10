@@ -40,7 +40,7 @@ class DesignSystem {
     this._tempUndoState = null; // ★ドラッグ開始時の状態を一時保存する変数
     this.setupPane();
     this.setupEventListeners();
-    
+
     // ★起動時にローカルストレージから自動復元
     this.loadLocal();
 
@@ -56,10 +56,10 @@ class DesignSystem {
       // ★ダブルクリックイベントリスナーを追加（テキスト編集用）
       canvas.addEventListener('dblclick', (e) => this.handleDoubleClickEvent(e));
     }
-    
+
     // キーボードイベントリスナーを追加
     window.addEventListener('keydown', (e) => this.handleKeyPressed(e));
-    
+
     // ★進化ポイント: p5.jsのマウス関数を「乗っ取る」のではなく「ラップする」
     // 既に定義されている関数（学生やAIが書いたもの）を退避
     const oldPressed = window.mousePressed;
@@ -91,12 +91,12 @@ class DesignSystem {
     if (this.currentTool === 'text') {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // キャンバス内の相対座標を計算
       const rect = e.target.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      
+
       this.handleCanvasClick(x, y, e);
     }
   }
@@ -149,21 +149,21 @@ class DesignSystem {
     const rect = e.target.getBoundingClientRect();
     const canvasX = textElement.x;
     const canvasY = textElement.y;
-    
+
     // キャンバス座標を画面座標に変換
     const screenX = rect.left + canvasX;
     const screenY = rect.top + canvasY;
 
     input.position(screenX, screenY);
-    
+
     // テキスト要素のスタイルを反映
     const [r, g, b] = textElement._getRGBFromHex(textElement.color);
     const alpha = Math.max(0, Math.min(1, textElement.opacity)) * 255;
-    
+
     // 回転を考慮したtransform（ラジアンを度に変換）
     const rotationDeg = (textElement.angle * 180) / Math.PI;
     const transformValue = `translate(-50%, -50%) rotate(${rotationDeg}deg)`;
-    
+
     input.style('background', 'transparent');
     input.style('border', 'none');
     input.style('outline', 'none');
@@ -174,7 +174,7 @@ class DesignSystem {
     input.style('transform', transformValue);
     input.style('transform-origin', 'center center');
     input.style('pointer-events', 'auto');
-    
+
     // テキスト全体を選択
     input.elt.focus();
     input.elt.select();
@@ -208,7 +208,7 @@ class DesignSystem {
     }
 
     const newText = this.textEditInput.value();
-    
+
     // テキストが変更されていた場合のみ保存
     if (newText !== this.editingTextElement.text) {
       this.saveState();
@@ -237,10 +237,10 @@ class DesignSystem {
 
   setupPane() {
     // 名前（ID）入力欄を追加
-    this.nameInput = this.pane.addInput(this.selectedParams, 'name', { 
+    this.nameInput = this.pane.addInput(this.selectedParams, 'name', {
       label: 'Name (ID)'
     });
-    
+
     // 名前入力欄専用のイベントリスナー（リアルタイム更新用）
     this.nameInput.on('change', (ev) => {
       const selectedElement = this.elements.find(el => el.isSelected);
@@ -248,7 +248,7 @@ class DesignSystem {
         selectedElement.name = ev.value;
       }
     });
-    
+
     // DOM要素に直接アクセスして、入力中にもリアルタイム更新
     setTimeout(() => {
       const nameInputElement = this.nameInput.controller_.view.element.querySelector('input');
@@ -262,12 +262,12 @@ class DesignSystem {
         });
       }
     }, 100);
-    
+
     // タグ（グループ）入力欄を追加
-    this.tagInput = this.pane.addInput(this.selectedParams, 'tag', { 
+    this.tagInput = this.pane.addInput(this.selectedParams, 'tag', {
       label: 'Tag (Group)'
     });
-    
+
     // タグ入力欄専用のイベントリスナー（リアルタイム更新用）
     this.tagInput.on('change', (ev) => {
       const selectedElement = this.elements.find(el => el.isSelected);
@@ -275,7 +275,7 @@ class DesignSystem {
         selectedElement.tag = ev.value;
       }
     });
-    
+
     // DOM要素に直接アクセスして、入力中にもリアルタイム更新
     setTimeout(() => {
       const tagInputElement = this.tagInput.controller_.view.element.querySelector('input');
@@ -289,32 +289,32 @@ class DesignSystem {
         });
       }
     }, 100);
-    
+
     // 表示/非表示のスイッチを追加
-    this.visibleInput = this.pane.addInput(this.selectedParams, 'visible', { 
-      label: 'Show Original' 
+    this.visibleInput = this.pane.addInput(this.selectedParams, 'visible', {
+      label: 'Show Original'
     });
-    
+
     this.visibleInput.on('change', (ev) => {
       if (this.isRefreshingPane) return;
-      
+
       const selectedElement = this.elements.find(el => el.isSelected);
       if (selectedElement) {
         // 変更時にステート保存
         this.saveState();
-        
+
         selectedElement.visible = ev.value;
         selectedElement.version++; // 変更検知のためにバージョンも上げる
-        
+
         this.saveLocal(); // オートセーブ
       }
     });
-    
+
     this.pane.addInput(this.selectedParams, 'x', { min: -1000, max: 2000, step: 1 });
     this.pane.addInput(this.selectedParams, 'y', { min: -1000, max: 2000, step: 1 });
     this.pane.addInput(this.selectedParams, 'scale', { min: 0.1, max: 5, step: 0.1 });
     this.pane.addInput(this.selectedParams, 'angle', { min: -PI, max: PI, step: 0.1 });
-    
+
     // TextElement用のフィールド
     this.colorInput = this.pane.addInput(this.selectedParams, 'color');
     this.fontSizeInput = this.pane.addInput(this.selectedParams, 'fontSize', { min: 10, max: 300, step: 1 });
@@ -340,18 +340,18 @@ class DesignSystem {
         'Courier New': 'Courier New',
         'Georgia': 'Georgia',
         'Futura': 'Futura',
-        'Avenir Next':'Avenir Next',
-        'YuMincho':'YuMincho',
-        'YuGothic':'YuGothic',
-        'Baskerville':'Baskerville',
-        'Didot':'Didot',
-        'Optima':'Optima',
-        'Copperplate':'Copperplate',
-        'American Typewriter':'American Typewriter',
+        'Avenir Next': 'Avenir Next',
+        'YuMincho': 'YuMincho',
+        'YuGothic': 'YuGothic',
+        'Baskerville': 'Baskerville',
+        'Didot': 'Didot',
+        'Optima': 'Optima',
+        'Copperplate': 'Copperplate',
+        'American Typewriter': 'American Typewriter',
 
       }
     });
-    
+
     // ImageElement用のフィールド
     this.tintColorInput = this.pane.addInput(this.selectedParams, 'tintColor');
 
@@ -371,7 +371,7 @@ class DesignSystem {
       if (this.isRefreshingPane) {
         return;
       }
-      
+
       const selectedElement = this.elements.find(el => el.isSelected);
       if (selectedElement) {
         // 変更開始時に状態を保存（最初の変更時のみ）
@@ -379,15 +379,15 @@ class DesignSystem {
           this.saveState();
           hasSavedBeforeChange = true;
         }
-        
+
         // ★変更があったらバージョンを上げる
         selectedElement.version++;
-        
+
         selectedElement.x = this.selectedParams.x;
         selectedElement.y = this.selectedParams.y;
         selectedElement.scale = this.selectedParams.scale;
         selectedElement.angle = this.selectedParams.angle;
-        
+
         if (selectedElement instanceof TextElement) {
           selectedElement.color = this.selectedParams.color;
           selectedElement.fontSize = this.selectedParams.fontSize;
@@ -400,7 +400,7 @@ class DesignSystem {
           selectedElement.color = this.selectedParams.color;
           selectedElement.opacity = this.selectedParams.opacity;
         }
-        
+
         // 変更が終了したらフラグをリセット（デバウンス）し、オートセーブ
         if (changeTimeout) clearTimeout(changeTimeout);
         changeTimeout = setTimeout(() => {
@@ -425,7 +425,7 @@ class DesignSystem {
     this.selectToolButton.on('click', () => this.activateSelectTool());
     this.textToolButton = toolsFolder.addButton({ title: 'Text Tool' });
     this.textToolButton.on('click', () => this.activateTextTool());
-    
+
     // 初期状態（Select Toolが選択されている）
     this.updateToolButtonStyles();
 
@@ -457,22 +457,22 @@ class DesignSystem {
   refreshPane() {
     // ★フラグをセットして、change イベントが要素を上書きしないようにする
     this.isRefreshingPane = true;
-    
+
     const selectedElement = this.elements.find(el => el.isSelected);
     if (selectedElement) {
       // 名前とタグを読み込んでパネルにセット
       this.selectedParams.name = selectedElement.name || '';
       this.selectedParams.tag = selectedElement.tag || '';
-      
+
       // 要素に visible プロパティがなければ true (表示) とみなす
       this.selectedParams.visible = (selectedElement.visible !== false);
-      
+
       this.selectedParams.x = selectedElement.x;
       this.selectedParams.y = selectedElement.y;
       this.selectedParams.scale = selectedElement.scale;
       this.selectedParams.angle = selectedElement.angle;
       this.selectedParams.opacity = (typeof selectedElement.opacity === 'number') ? selectedElement.opacity : 1;
-      
+
       // 要素タイプに応じてフィールドを表示/非表示
       if (selectedElement instanceof TextElement) {
         this.selectedParams.color = selectedElement.color;
@@ -489,7 +489,7 @@ class DesignSystem {
         this.fontSizeInput.hidden = true;
         this.fontInput.hidden = true;
         this.tintColorInput.hidden = false;
-         this.opacityInput.hidden = false;
+        this.opacityInput.hidden = false;
       } else if (selectedElement instanceof VectorElement) {
         this.selectedParams.color = selectedElement.color;
         this.colorInput.hidden = false;
@@ -504,7 +504,7 @@ class DesignSystem {
         this.tintColorInput.hidden = true;
         this.opacityInput.hidden = true;
       }
-      
+
       this.pane.refresh();
     } else {
       // 選択解除されたら、Name欄とTag欄を空にする
@@ -512,7 +512,7 @@ class DesignSystem {
       this.selectedParams.tag = '';
       this.pane.refresh();
     }
-    
+
     // ★フラグを解除
     this.isRefreshingPane = false;
   }
@@ -522,12 +522,12 @@ class DesignSystem {
     setTimeout(() => {
       const paneElement = this.pane.element;
       if (!paneElement) return;
-      
+
       // すべてのボタン要素を取得
       const buttons = paneElement.querySelectorAll('button');
       let selectButton = null;
       let textButton = null;
-      
+
       // ボタンのテキストで識別
       buttons.forEach(btn => {
         const text = btn.textContent.trim();
@@ -537,7 +537,7 @@ class DesignSystem {
           textButton = btn;
         }
       });
-      
+
       if (selectButton && textButton) {
         if (this.currentTool === 'select') {
           // Select Toolがアクティブ
@@ -578,14 +578,14 @@ class DesignSystem {
     if (this.currentTool === 'text') {
       // HTMLの入力要素を作成
       const input = createInput('');
-      
+
       // 表示位置にはイベントの絶対座標(clientX, clientY)を使う
       if (e) {
         input.position(e.clientX, e.clientY);
       } else {
         input.position(x, y);
       }
-      
+
       input.style('background', 'transparent');
       input.style('border', 'none');
       input.style('outline', 'none');
@@ -626,7 +626,7 @@ class DesignSystem {
     // 現在のelementsをすべてクローンして履歴に保存
     const clonedElements = this.elements.map(el => el.clone());
     this.history.push(clonedElements);
-    
+
     // 履歴が30個を超えたら古いものを削除
     if (this.history.length > 30) {
       this.history.shift();
@@ -635,7 +635,7 @@ class DesignSystem {
 
   undo() {
     if (this.history.length === 0) return;
-    
+
     // 最後の状態を復元
     const previousState = this.history.pop();
     this.elements = previousState.map(el => el.clone());
@@ -668,7 +668,7 @@ class DesignSystem {
    */
   drawOnPoints(nameOrTag, options = {}, drawAction = null) {
     const targets = this._resolveTargets(nameOrTag);
-    
+
     // デフォルト設定
     const config = {
       step: 1,      // 点の間隔（精度）
@@ -689,7 +689,7 @@ class DesignSystem {
 
       // 点を取得
       const points = el.getPoints(config.step);
-      
+
       // 色の設定（p5.jsのcolor関数を使用）
       const c = config.color || el.color;
       const baseColor = color(c);
@@ -719,10 +719,10 @@ class DesignSystem {
    */
   drawInside(nameOrTag, drawAction) {
     const targets = this._resolveTargets(nameOrTag);
-    
+
     // デバッグ用：処理をスキップしてフリーズを回避
     if (targets.length === 0) return;
-    
+
     for (const el of targets) {
       // 要素ごとに専用のデータ保存場所（ポケット）を確保
       if (!el._state) {
@@ -749,27 +749,27 @@ class DesignSystem {
         mouseY: lmy,
         element: el,
         // ★この 'state' が魔法のポケットです
-        state: el._state, 
+        state: el._state,
         isHover: el.contains(mouseX, mouseY),
         width: el.getWidth(),
         height: el.getHeight(),
-        
+
         // ★要素のプロパティが変更されたか検知
         elementChanged: () => {
           // 前回のバージョンを記録していない、または異なる場合はtrue
           return el._state._lastVersion !== undefined && el._state._lastVersion !== el.version;
         },
-        
+
         // ★現在のバージョンを記録（変更を処理済みとしてマーク）
         markAsProcessed: () => {
           el._state._lastVersion = el.version;
         },
-        
+
         // ★ TextElement専用の便利プロパティ
         get fontSize() {
           return el instanceof TextElement ? el.fontSize : null;
         },
-        
+
         // ★ 魔法のメソッド：これ一発で「文字なら文字、図形なら図形」を描く
         drawAuto: (x = 0, y = 0) => {
           if (el instanceof TextElement) {
@@ -786,17 +786,17 @@ class DesignSystem {
             const [r, g, b] = el._getRGBFromHex(el.color);
             fill(r, g, b, el.opacity * 255);
             noStroke();
-            
+
             push();
             translate(x, y);
             beginShape();
-            
+
             if (el.contours.length > 0) {
               for (let p of el.contours[0]) {
                 vertex(p.x - el.centerX, p.y - el.centerY);
               }
             }
-            
+
             for (let i = 1; i < el.contours.length; i++) {
               beginContour();
               for (let p of el.contours[i]) {
@@ -804,7 +804,7 @@ class DesignSystem {
               }
               endContour();
             }
-            
+
             endShape(CLOSE);
             pop();
           } else if (el instanceof ImageElement) {
@@ -821,7 +821,7 @@ class DesignSystem {
 
       // 描画アクションを実行
       drawAction(context);
-      
+
       pop();
     }
   }
@@ -830,13 +830,13 @@ class DesignSystem {
   getPointsOf(name, step = 5) {
     const el = this.get(name);
     if (!el) return [];
-    
+
     // ★要素のサイズに応じてstepを正規化（密度を統一）
     // 基準サイズ（100x100）に対する比率でstepを調整
     const baseSize = 100;
     const elementArea = el.getWidth() * el.getHeight();
     const normalizedStep = step * Math.sqrt(elementArea / (baseSize * baseSize));
-    
+
     // 各要素クラスに実装した getPoints を呼び出す
     if (typeof el.getPoints === 'function') {
       return el.getPoints(normalizedStep);
@@ -915,29 +915,29 @@ class DesignSystem {
   pasteClipboard() {
     // クリップボードが空なら何もしない
     if (this.clipboard.length === 0) return;
-    
+
     this.saveState();
-    
+
     // 現在の選択をすべて解除
     for (let element of this.elements) {
       element.isSelected = false;
     }
-    
+
     // オフセットを更新（ペーストするたびに20ずつ増える）
     this.pasteOffset += 20;
 
     // クリップボードの中身は「書き換えない」で読み取るだけ
     for (let clipElement of this.clipboard) {
       const newElement = clipElement.clone(); // 元のコピーから生成
-      
+
       // オフセット分だけずらす
       newElement.x += this.pasteOffset;
       newElement.y += this.pasteOffset;
-      
+
       newElement.isSelected = true;
       this.elements.push(newElement);
     }
-    
+
     // パネルを更新
     this.refreshPane();
     this.saveLocal(); // ★オートセーブ
@@ -973,8 +973,8 @@ class DesignSystem {
     const selectedIndex = this.elements.findIndex(el => el.isSelected);
     if (selectedIndex !== -1 && selectedIndex < this.elements.length - 1) {
       // 次の要素と交換
-      [this.elements[selectedIndex], this.elements[selectedIndex + 1]] = 
-      [this.elements[selectedIndex + 1], this.elements[selectedIndex]];
+      [this.elements[selectedIndex], this.elements[selectedIndex + 1]] =
+        [this.elements[selectedIndex + 1], this.elements[selectedIndex]];
       this.refreshPane();
       this.saveLocal(); // ★オートセーブ
     }
@@ -985,8 +985,8 @@ class DesignSystem {
     const selectedIndex = this.elements.findIndex(el => el.isSelected);
     if (selectedIndex !== -1 && selectedIndex > 0) {
       // 前の要素と交換
-      [this.elements[selectedIndex], this.elements[selectedIndex - 1]] = 
-      [this.elements[selectedIndex - 1], this.elements[selectedIndex]];
+      [this.elements[selectedIndex], this.elements[selectedIndex - 1]] =
+        [this.elements[selectedIndex - 1], this.elements[selectedIndex]];
       this.refreshPane();
       this.saveLocal(); // ★オートセーブ
     }
@@ -997,7 +997,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス基準で左揃え
       const element = selectedElements[0];
@@ -1023,7 +1023,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス中央に配置
       selectedElements[0].x = width / 2;
@@ -1048,7 +1048,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス基準で右揃え
       const element = selectedElements[0];
@@ -1074,7 +1074,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス基準で上揃え
       const element = selectedElements[0];
@@ -1100,7 +1100,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス中央に配置
       selectedElements[0].y = height / 2;
@@ -1125,7 +1125,7 @@ class DesignSystem {
     this.saveState();
     const selectedElements = this.elements.filter(el => el.isSelected);
     if (selectedElements.length === 0) return;
-    
+
     if (selectedElements.length === 1) {
       // 単一選択：キャンバス基準で下揃え
       const element = selectedElements[0];
@@ -1152,11 +1152,11 @@ class DesignSystem {
     if (!options.skipBackground) {
       background(this.getBackgroundColor());
     }
-    
+
     for (let element of this.elements) {
       // 各要素の display() メソッド内で visible チェックを行う
       element.display();
-      
+
       // 選択中の要素の上にIDを表示（visible に関わらず表示）
       if (element.isSelected && element.name) {
         push();
@@ -1200,7 +1200,7 @@ class DesignSystem {
           // 画像をBase64に変換
           try {
             let imageData;
-            
+
             // p5.Imageのcanvasプロパティが利用可能な場合（Canvas要素として読み込まれた画像）
             if (el.img.canvas) {
               imageData = el.img.canvas.toDataURL('image/png');
@@ -1216,7 +1216,7 @@ class DesignSystem {
               console.warn('Unable to convert image to Base64: no canvas or elt property');
               imageData = '';
             }
-            
+
             return {
               type: 'image',
               name: el.name,
@@ -1284,12 +1284,12 @@ class DesignSystem {
       console.log('Skipping saveLocal() - still loading');
       return;
     }
-    
+
     // ★オートセーブが無効化されている場合はスキップ
     if (this._autoSaveDisabled) {
       return;
     }
-    
+
     try {
       const data = this.serialize();
       const jsonString = JSON.stringify(data);
@@ -1388,7 +1388,7 @@ class DesignSystem {
     }
 
     this.elements = [];
-    
+
     // 各要素を復元
     const loadPromises = data.elements.map(elementData => {
       if (elementData.type === 'text') {
@@ -1445,31 +1445,31 @@ class DesignSystem {
 
   exportSVG() {
     const fileName = `design_${Date.now()}`;
-    
+
     try {
       // 1. 書き出し専用の「裏キャンバス」をSVGモードで作成
       let svgCanvas = createGraphics(width, height, SVG);
-      
+
       // 2. 裏キャンバスに背景色を塗る
       const bgColor = this.getBackgroundColor();
       svgCanvas.background(bgColor);
-      
+
       // 3. 全ての要素を「裏キャンバス」に対して描画する
       for (let el of this.elements) {
         // displayメソッドに描画先(svgCanvas)を渡す
         el.display(svgCanvas);
       }
-      
+
       // 4. 裏キャンバスを保存する
       svgCanvas.save(fileName);
-      
+
       // 5. メモリ解放
       svgCanvas.remove();
-      
+
       console.log('SVG exported successfully:', fileName);
     } catch (err) {
       console.error('SVG export using p5.svg failed, falling back to manual generation:', err);
-      
+
       // p5.svgが動作しない場合は手動生成にフォールバック
       this.exportSVGManual();
     }
@@ -1478,10 +1478,10 @@ class DesignSystem {
   exportSVGManual() {
     // 手動SVG生成（フォールバック用）
     const fileName = `design_${Date.now()}`;
-    
+
     // 背景色を取得
     const bgColor = this.getBackgroundColor();
-    
+
     // SVGヘッダー
     let svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -1489,7 +1489,7 @@ class DesignSystem {
   <rect width="${width}" height="${height}" fill="${bgColor}"/>
   
 `;
-    
+
     // 各要素をSVG形式で出力
     for (let el of this.elements) {
       try {
@@ -1502,7 +1502,7 @@ class DesignSystem {
           // ベクター要素（中抜き対応）
           if (el.contours && el.contours.length > 0) {
             const transform = `translate(${el.x},${el.y}) rotate(${degrees(el.angle)}) scale(${el.scale})`;
-            
+
             // ★改善: 全ての輪郭（外枠＋穴）を1つのパスデータとして結合する
             let combinedPathData = '';
             for (let contour of el.contours) {
@@ -1514,14 +1514,14 @@ class DesignSystem {
               }
               combinedPathData += ' Z '; // 各輪郭を閉じる
             }
-            
+
             // ★重要: fill-rule="evenodd" を追加して中抜きを有効化
             svgContent += `  <path d="${combinedPathData}" fill="${el.color}" fill-rule="evenodd" transform="${transform}"/>\n`;
           }
         } else if (el instanceof ImageElement) {
           // 画像要素
           const transform = `translate(${el.x - el.width * el.scale / 2},${el.y - el.height * el.scale / 2}) rotate(${degrees(el.angle)} ${el.width * el.scale / 2} ${el.height * el.scale / 2}) scale(${el.scale})`;
-          
+
           let imageData = '';
           try {
             if (el.img.canvas) {
@@ -1534,7 +1534,7 @@ class DesignSystem {
               ctx.drawImage(el.img.elt, 0, 0);
               imageData = canvas.toDataURL('image/png');
             }
-            
+
             if (imageData) {
               svgContent += `  <image transform="${transform}" width="${el.width}" height="${el.height}" href="${imageData}"/>\n`;
             }
@@ -1546,10 +1546,10 @@ class DesignSystem {
         console.error('Error exporting element to SVG:', err, el);
       }
     }
-    
+
     // SVGフッター
     svgContent += `</svg>`;
-    
+
     // ダウンロード
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -1558,7 +1558,7 @@ class DesignSystem {
     a.download = fileName + '.svg';
     a.click();
     URL.revokeObjectURL(url);
-    
+
     console.log('SVG exported manually:', fileName);
   }
 
@@ -1579,27 +1579,27 @@ class DesignSystem {
   }
 
   // --- イベントハンドラメソッド（sketch.jsから呼ばれる） ---
-  
+
   handleMousePressed(e, mx, my) {
     // キャンバス外（Tweakpaneやカラーパレットなど）のクリックは無視
     if (e && e.target && e.target.id !== 'main-canvas') {
       return;
     }
-    
+
     // ★編集中の場合は通常のクリック処理を無視
     if (this.editingTextElement) {
       return;
     }
-    
+
     // テキストツールモードの場合は、DOMイベントリスナー（handleCanvasClick）で処理されるので何もしない
     if (this.currentTool === 'text') {
       return;
     }
-    
+
     // ★追加: 操作を始める直前の状態（今の状態）を一時保存しておく
     // これが「Undoした時に戻るべき場所」になります
     this._tempUndoState = this.elements.map(el => el.clone());
-    
+
     // 選択ツールモード（通常）の場合
     this.transformManager.onPressed(this.elements, mx, my);
     this.refreshPane();
@@ -1611,30 +1611,30 @@ class DesignSystem {
 
   handleMouseReleased() {
     const wasTransforming = this.transformManager.isDragging || this.transformManager.transformMode !== null;
-    
+
     // ドラッグしていた場合もバージョンを上げる（位置・回転・スケールが変わったため）
     if (wasTransforming) {
       const selectedElements = this.elements.filter(el => el.isSelected);
       selectedElements.forEach(el => el.version++); // ★バージョンアップ
     }
-    
+
     this.transformManager.onReleased();
-    
+
     // ドラッグや変形操作が行われていた場合のみ保存
     if (wasTransforming) {
       // ★追加: 実際に動かしたので、Pressedで保存しておいた「動く前の状態」を履歴スタックに追加
       if (this._tempUndoState) {
         this.history.push(this._tempUndoState);
-        
+
         // 履歴制限（30個）を超えたら古いのを捨てる（saveStateと同じロジック）
         if (this.history.length > 30) {
           this.history.shift();
         }
       }
-      
+
       this.saveLocal(); // ★オートセーブ
     }
-    
+
     // ★追加: 一時保存をクリア
     this._tempUndoState = null;
   }
@@ -1644,28 +1644,28 @@ class DesignSystem {
     if (e.target && e.target.tagName === 'INPUT') {
       return;
     }
-    
+
     // Cmd(Mac) または Ctrl(Windows) + Z で元に戻す
     if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
       this.undo();
       return;
     }
-    
+
     // Cmd(Mac) または Ctrl(Windows) + C でコピー
     if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
       e.preventDefault();
       this.copySelected();
       return;
     }
-    
+
     // Cmd(Mac) または Ctrl(Windows) + V でペースト
     if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
       e.preventDefault();
       this.pasteClipboard();
       return;
     }
-    
+
     // BACKSPACE/DELETE で削除
     if (e.keyCode === 8 || e.keyCode === 46) { // 8: BACKSPACE, 46: DELETE
       e.preventDefault();
@@ -1679,7 +1679,7 @@ class DesignSystem {
       // ファイル名から拡張子を取得
       const fileName = file.name || '';
       const isSVG = fileName.toLowerCase().endsWith('.svg');
-      
+
       if (isSVG) {
         // SVGファイルをテキストとして読み込む
         fetch(file.data)
@@ -1705,7 +1705,7 @@ class DesignSystem {
   bind(nameOrTag, action) {
     // 監視リストになければ作る
     if (!this.observers) this.observers = [];
-    
+
     // 監視データを登録
     this.observers.push({
       nameOrTag: nameOrTag,
@@ -1721,12 +1721,12 @@ class DesignSystem {
     for (let obs of this.observers) {
       // IDまたはタグで要素を取得
       const targets = this._resolveTargets(obs.nameOrTag);
-      
+
       for (let target of targets) {
         // 要素の一意なキーを生成（IDがあればID、なければ配列のインデックス）
         const key = target.name || this.elements.indexOf(target);
         const lastVersion = obs.lastVersions[key] || -1;
-        
+
         // バージョンが変わっていたらアクションを実行！
         if (target.version !== lastVersion) {
           obs.action(target);

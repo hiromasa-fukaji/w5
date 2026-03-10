@@ -5,7 +5,7 @@ class TextElement extends BaseElement {
     this.fontSize = 40;
     this.font = 'Helvetica Neue';
     this.color = '#ffffff';
-    
+
     // ★キャッシュ用
     this._cachedPoints = null;
     this._cachedPointsVersion = -1;
@@ -18,19 +18,38 @@ class TextElement extends BaseElement {
       target.translate(this.x, this.y);
       target.rotate(this.angle);
       target.scale(this.scale);
-      
+
       target.textFont(this.font);
       target.textSize(this.fontSize);
+
+      // titleタグの場合ストロークを適用する
+      const tagStr = (this.tag || '').toString().toLowerCase();
+      if (tagStr.indexOf('title') !== -1 || tagStr.indexOf('タイトル') !== -1) {
+        // sketch.js 側でグローバル変数 titleStrokeColor が設定されていればそれを使う、なければデフォルト色
+        const sc = typeof window.titleStrokeColor !== 'undefined' ? window.titleStrokeColor : '#03ff81';
+        target.stroke(sc);
+        // ユーザーが設定したストローク幅。sketch.js のグローバル設定を優先し、なければUI設定値、なければ1.0
+        let w = 1.0;
+        if (typeof window.titleStrokeWeight !== 'undefined') {
+          w = Number(window.titleStrokeWeight);
+        } else if (this.strokeWeight !== undefined) {
+          w = Number(this.strokeWeight);
+        }
+        target.strokeWeight(w);
+      } else {
+        target.noStroke(); // 通常は輪郭なし
+      }
+
       // 不透明度付きで描画
       const [r, g, b] = this._getRGBFromHex(this.color);
       const alpha = Math.max(0, Math.min(1, this.opacity)) * 255;
       target.fill(r, g, b, alpha);
       target.textAlign(CENTER, CENTER);
       target.text(this.text, 0, 0);
-      
+
       target.pop();
     }
-    
+
     // 選択枠はメインキャンバスのみに表示（visible に関わらず表示）
     if (this.isSelected && target === window) {
       this.drawSelectionBox();
@@ -55,7 +74,7 @@ class TextElement extends BaseElement {
     const textH = this.fontSize * this.scale;
     const halfW = textW / 2;
     const halfH = textH / 2;
-    
+
     // マウス座標を要素のローカル座標系に変換
     const dx = mx - this.x;
     const dy = my - this.y;
@@ -63,10 +82,10 @@ class TextElement extends BaseElement {
     const sinA = sin(-this.angle);
     const localX = dx * cosA - dy * sinA;
     const localY = dx * sinA + dy * cosA;
-    
+
     // ローカル座標系での矩形判定
     return (localX >= -halfW && localX <= halfW &&
-            localY >= -halfH && localY <= halfH);
+      localY >= -halfH && localY <= halfH);
   }
 
   clone() {
@@ -88,104 +107,104 @@ class TextElement extends BaseElement {
       console.log(`Using cached points (${this._cachedPoints.length} points)`);
       return this._cachedPoints;
     }
-    
+
     console.log(`getPoints called for text: "${this.text}", fontSize: ${this.fontSize}, step: ${step}`);
-    
+
     try {
       // Canvas APIを直接使って文字を描画
       // ★高解像度で描画してアンチエイリアスを滑らかにする
       const scale = 4; // 4倍の解像度で描画
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      
+
       // キャンバスサイズを設定（高解像度）
       const padding = this.fontSize;
       const baseWidth = Math.ceil(this.getWidth() + padding * 2);
       const baseHeight = Math.ceil(this.fontSize + padding * 2);
       canvas.width = baseWidth * scale;
       canvas.height = baseHeight * scale;
-      
+
       console.log(`Canvas size: ${canvas.width}x${canvas.height} (scale: ${scale}x)`);
-      
+
       // ★アンチエイリアスを有効化
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      
+
       // スケールを適用
       ctx.scale(scale, scale);
-      
+
       // 背景を黒で塗りつぶし
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, baseWidth, baseHeight);
-      
+
       // 文字を白で描画（高解像度）
       ctx.fillStyle = 'white';
       ctx.font = `${this.fontSize}px ${this.font}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(this.text, baseWidth / 2, baseHeight / 2);
-      
+
       // ピクセルデータを取得
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
-      
+
       const points = [];
       let count = 0;
       const maxPoints = 1000000;
-      
+
       // ピクセルをスキャンして白い部分を抽出
       // ★高解像度なので、stepもスケールに合わせて調整
       const scaledStep = step * scale;
-      
+
       for (let y = 0; y < canvas.height; y += scaledStep) {
         for (let x = 0; x < canvas.width; x += scaledStep) {
           if (count >= maxPoints) break;
-          
+
           const index = (Math.floor(x) + Math.floor(y) * canvas.width) * 4;
           const r = pixels[index];
-          
+
           // ★閾値を下げて中間色（アンチエイリアス部分）も含める
           if (r > 50) { // 128 → 50 に変更（より滑らか）
             // 中心を原点とした座標に変換（元のスケールに戻す）
-            points.push({ 
-              x: (x - canvas.width / 2) / scale, 
-              y: (y - canvas.height / 2) / scale 
+            points.push({
+              x: (x - canvas.width / 2) / scale,
+              y: (y - canvas.height / 2) / scale
             });
             count++;
           }
         }
         if (count >= maxPoints) break;
       }
-      
+
       console.log(`Generated ${points.length} points from text shape`);
-      
+
       // ★キャッシュに保存
       this._cachedPoints = points;
       this._cachedPointsVersion = this.version;
-      
+
       return points;
-      
+
     } catch (err) {
       console.error('Error in getPoints:', err);
       return [];
     }
   }
-  
+
   // ★ピクセルベース版（デバッグ用・現在は使用しない）
   getPointsPixelBased(step = 5) {
     console.log(`getPoints called for text: "${this.text}", fontSize: ${this.fontSize}, step: ${step}`);
-    
+
     try {
       // 文字の概算サイズを計算
       const estimatedW = this.fontSize * this.text.length * 0.6;
       const estimatedH = this.fontSize * 1.2;
-      
+
       // キャンバスサイズを制限
       const w = Math.min(Math.ceil(estimatedW * 2), 1000);
       const h = Math.min(Math.ceil(estimatedH * 2), 1000);
-      
+
       console.log(`Creating graphics buffer: ${w}x${h}`);
-      
+
       // ★改善: window.createGraphics を明示的に呼び出す
       let pg;
       if (typeof window.createGraphics === 'function') {
@@ -196,26 +215,26 @@ class TextElement extends BaseElement {
         console.error('createGraphics is not available');
         return [];
       }
-      
+
       // pgが正しく生成されているか確認
       if (!pg || typeof pg !== 'object') {
         console.error('Failed to create graphics buffer, pg:', pg);
         return [];
       }
-      
+
       console.log('Graphics buffer created:', pg);
-      
+
       // メソッドが存在するか確認しながら実行
       if (pg.pixelDensity && typeof pg.pixelDensity === 'function') {
         pg.pixelDensity(1);
       }
-      
+
       if (!pg.background || typeof pg.background !== 'function') {
         console.error('pg.background is not a function. pg:', pg);
         console.error('pg properties:', Object.keys(pg));
         return [];
       }
-      
+
       pg.background(0);
       pg.fill(255);
       pg.textAlign(CENTER, CENTER);
@@ -225,20 +244,20 @@ class TextElement extends BaseElement {
 
       pg.loadPixels();
       const points = [];
-      
+
       // サンプリング数を制限（最大5000点）
       let count = 0;
       const maxPoints = 5000;
-      
+
       const actualW = pg.width;
       const actualH = pg.height;
-      
+
       console.log(`Scanning pixels: ${actualW}x${actualH}, pixels array length: ${pg.pixels.length}`);
-      
+
       for (let y = 0; y < actualH; y += step) {
         for (let x = 0; x < actualW; x += step) {
           if (count >= maxPoints) break;
-          
+
           const index = (Math.floor(x) + Math.floor(y) * actualW) * 4;
           if (index >= 0 && index < pg.pixels.length && pg.pixels[index] > 128) {
             points.push({ x: x - actualW / 2, y: y - actualH / 2 });
@@ -247,19 +266,19 @@ class TextElement extends BaseElement {
         }
         if (count >= maxPoints) break;
       }
-      
+
       if (pg.remove && typeof pg.remove === 'function') {
         pg.remove();
       }
-      
+
       console.log(`Generated ${points.length} points`);
-      
+
       // ★キャッシュに保存
       this._cachedPoints = points;
       this._cachedPointsVersion = this.version;
-      
+
       return points;
-      
+
     } catch (err) {
       console.error('Error in getPoints:', err);
       console.error('Error stack:', err.stack);
